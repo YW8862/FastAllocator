@@ -5,7 +5,7 @@
 
 #include "../include/allocator/config.h"
 
-namespace my_alloc {
+namespace fastalloc {
 
 void* PageIdToPtr(PageId page_id) {
     const std::uintptr_t address =
@@ -34,4 +34,4 @@ bool SpanContains(const Span& span, const void* ptr) {
     return address >= begin && address < end;
 }
 
-}  // namespace my_alloc
+}  // namespace fastalloc

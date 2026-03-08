@@ -8,7 +8,7 @@
 #include "../include/allocator/config.h"
 #include "../include/allocator/size_class.h"
 
-namespace my_alloc {
+namespace fastalloc {
 namespace {
 
 std::size_t PagesForSizeClass(std::size_t index) {
@@ -80,4 +80,4 @@ Span* PageCache::ResolveSpan(const void* ptr) {
     return radix_tree_.GetSpan(ptr);
 }
 
-}  // namespace my_alloc
+}  // namespace fastalloc

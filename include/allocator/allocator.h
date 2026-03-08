@@ -2,7 +2,7 @@
 
 #include <cstddef>
 
-namespace my_alloc {
+namespace fastalloc {
 
 struct Stats {
     std::size_t total_allocated = 0;
@@ -32,4 +32,4 @@ void* malloc(std::size_t size);
 void free(void* ptr);
 void* realloc(void* ptr, std::size_t size);
 
-}  // namespace my_alloc
+}  // namespace fastalloc

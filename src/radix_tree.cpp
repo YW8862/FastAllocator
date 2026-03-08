@@ -1,6 +1,6 @@
 #include "../include/allocator/radix_tree.h"
 
-namespace my_alloc {
+namespace fastalloc {
 
 RadixTree::LeafNode::LeafNode() {
     for (auto& slot : slots) {
@@ -165,4 +165,4 @@ void RadixTree::DestroyMidNode(MidNode* node) {
     delete node;
 }
 
-}  // namespace my_alloc
+}  // namespace fastalloc

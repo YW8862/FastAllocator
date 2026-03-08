@@ -5,7 +5,7 @@
 #include "../include/allocator/page_cache.h"
 #include "../include/allocator/size_class.h"
 
-namespace my_alloc {
+namespace fastalloc {
 namespace {
 
 void*& NextObject(void* obj) {
@@ -192,4 +192,4 @@ void CentralCache::RemoveSpan(CentralBucket& bucket, Span* span) {
     span->prev = nullptr;
 }
 
-}  // namespace my_alloc
+}  // namespace fastalloc

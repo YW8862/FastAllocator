@@ -36,7 +36,7 @@ doc/                 设计文档
 主要接口如下：
 
 ```cpp
-namespace my_alloc {
+namespace fastalloc {
 
 void Initialize();
 void initialize();
@@ -52,7 +52,7 @@ void* malloc(std::size_t size);
 void free(void* ptr);
 void* realloc(void* ptr, std::size_t size);
 
-}  // namespace my_alloc
+}  // namespace fastalloc
 ```
 
 ## Quick Start
@@ -171,25 +171,25 @@ g++ -std=c++17 -pthread \
 #include <iostream>
 
 int main() {
-    my_alloc::initialize();
+    fastalloc::initialize();
 
-    void* p = my_alloc::malloc(128);
+    void* p = fastalloc::malloc(128);
     if (p == nullptr) {
         return 1;
     }
 
     std::memset(p, 0, 128);
 
-    p = my_alloc::realloc(p, 256);
+    p = fastalloc::realloc(p, 256);
     if (p == nullptr) {
         return 1;
     }
 
-    my_alloc::Stats stats = my_alloc::get_stats();
+    fastalloc::Stats stats = fastalloc::get_stats();
     std::cout << "current_bytes = " << stats.current_bytes << '\n';
     std::cout << "peak_bytes = " << stats.peak_bytes << '\n';
 
-    my_alloc::free(p);
+    fastalloc::free(p);
     return 0;
 }
 ```
@@ -198,26 +198,26 @@ int main() {
 
 通常建议优先使用下面这组接口：
 
-- `my_alloc::initialize()`
-- `my_alloc::malloc(size)`
-- `my_alloc::free(ptr)`
-- `my_alloc::realloc(ptr, new_size)`
-- `my_alloc::get_stats()`
+- `fastalloc::initialize()`
+- `fastalloc::malloc(size)`
+- `fastalloc::free(ptr)`
+- `fastalloc::realloc(ptr, new_size)`
+- `fastalloc::get_stats()`
 
 它们的命名更接近文档中的对外 API，也更适合作为项目接入层使用。
 
 ### API 行为说明
 
-- `my_alloc::initialize()`：初始化全局分配器，也可以不手动调用，分配时会懒初始化
-- `my_alloc::malloc(0)`：返回 `nullptr`
-- `my_alloc::free(nullptr)`：安全，无副作用
-- `my_alloc::realloc(nullptr, n)`：等价于 `malloc(n)`
-- `my_alloc::realloc(ptr, 0)`：会释放 `ptr` 并返回 `nullptr`
+- `fastalloc::initialize()`：初始化全局分配器，也可以不手动调用，分配时会懒初始化
+- `fastalloc::malloc(0)`：返回 `nullptr`
+- `fastalloc::free(nullptr)`：安全，无副作用
+- `fastalloc::realloc(nullptr, n)`：等价于 `malloc(n)`
+- `fastalloc::realloc(ptr, 0)`：会释放 `ptr` 并返回 `nullptr`
 
 ### 注意事项
 
-- 必须用 `my_alloc::free()` 释放由 `my_alloc::malloc()` 返回的指针，不要混用系统 `free()`
-- 同理，不要对系统 `malloc()` 返回的指针调用 `my_alloc::free()`
+- 必须用 `fastalloc::free()` 释放由 `fastalloc::malloc()` 返回的指针，不要混用系统 `free()`
+- 同理，不要对系统 `malloc()` 返回的指针调用 `fastalloc::free()`
 - 当前实现主要面向学习和实验，不建议直接替代生产环境分配器
 - 如果你想关闭调试开销，可以在 `include/allocator/config.h` 中把 `kEnableDebugMode` 设为 `false`
 
@@ -314,7 +314,7 @@ g++ -std=c++17 -pthread -Iinclude src/*.cpp test/bench_allocator.cpp -o bench_al
 当前 benchmark 会对比：
 
 - 系统 `malloc/free`
-- `my_alloc::malloc/free`
+- `fastalloc::malloc/free`
 
 当前场景包括：
 

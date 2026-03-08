@@ -3,7 +3,7 @@
 #include <atomic>
 #include <cstddef>
 
-namespace my_alloc {
+namespace fastalloc {
 
 using PageId = std::size_t;
 
@@ -33,4 +33,4 @@ std::size_t SpanBytes(const Span& span);
 // 判断某个地址是否落在该 Span 覆盖的地址范围内。
 bool SpanContains(const Span& span, const void* ptr);
 
-}  // namespace my_alloc
+}  // namespace fastalloc

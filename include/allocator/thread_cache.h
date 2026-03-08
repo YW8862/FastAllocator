@@ -5,7 +5,7 @@
 
 #include "config.h"
 
-namespace my_alloc {
+namespace fastalloc {
 
 struct FreeList {
     void* head = nullptr;
@@ -35,4 +35,4 @@ private:
     void ReleaseToCentral(std::size_t index, FreeList& list);
 };
 
-}  // namespace my_alloc
+}  // namespace fastalloc

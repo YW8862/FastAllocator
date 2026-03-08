@@ -6,7 +6,7 @@
 #include "../include/allocator/central_cache.h"
 #include "../include/allocator/size_class.h"
 
-namespace my_alloc {
+namespace fastalloc {
 namespace {
 
 void*& NextObject(void* obj) {
@@ -132,4 +132,4 @@ void ThreadCache::ReleaseToCentral(std::size_t index, FreeList& list) {
     CentralCache::Instance().ReturnRange(index, start, end, returned);
 }
 
-}  // namespace my_alloc
+}  // namespace fastalloc

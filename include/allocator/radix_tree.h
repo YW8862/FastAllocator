@@ -7,7 +7,7 @@
 
 #include "span.h"
 
-namespace my_alloc {
+namespace fastalloc {
 
 class RadixTree {
 public:
@@ -60,4 +60,4 @@ private:
     static void DestroyMidNode(MidNode* node);
 };
 
-}  // namespace my_alloc
+}  // namespace fastalloc

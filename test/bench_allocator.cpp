@@ -96,7 +96,7 @@ Result RunScenario(const std::string& allocator_name,
     }
 
     if (allocator_name == "fastallocator") {
-        const my_alloc::Stats stats = my_alloc::GetStats();
+        const fastalloc::Stats stats = fastalloc::GetStats();
         result.current_bytes = stats.current_bytes;
         result.peak_bytes = stats.peak_bytes;
     }
@@ -124,7 +124,7 @@ void PrintResult(const Result& result) {
 }  // namespace
 
 int main() {
-    my_alloc::initialize();
+    fastalloc::initialize();
 
     const std::vector<Scenario> scenarios = {
         {"single-fixed-64", {64}, 50000, 1},
@@ -142,7 +142,7 @@ int main() {
         PrintResult(RunScenario(
             "system", &SystemMalloc, &SystemFree, scenario));
         PrintResult(RunScenario(
-            "fastallocator", &my_alloc::malloc, &my_alloc::free, scenario));
+            "fastallocator", &fastalloc::malloc, &fastalloc::free, scenario));
     }
 
     return 0;

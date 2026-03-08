@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <cassert>
 
-namespace my_alloc {
+namespace fastalloc {
 
 std::size_t SizeClassIndex(std::size_t size) {
     if (size == 0) {
@@ -35,4 +35,4 @@ std::size_t NumToMove(std::size_t index) {
     return std::min<std::size_t>(kBatchSize, desired);
 }
 
-}  // namespace my_alloc
+}  // namespace fastalloc

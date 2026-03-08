@@ -5,19 +5,19 @@
 
 namespace {
 
-using my_alloc::IndexToSize;
-using my_alloc::NumToMove;
-using my_alloc::SizeClassIndex;
-using my_alloc::kMaxSmallObjectSize;
-using my_alloc::kNumSizeClasses;
+using fastalloc::IndexToSize;
+using fastalloc::NumToMove;
+using fastalloc::SizeClassIndex;
+using fastalloc::kMaxSmallObjectSize;
+using fastalloc::kNumSizeClasses;
 
 void TestAlignSize() {
-    assert(my_alloc::AlignSize(0) == 0);
-    assert(my_alloc::AlignSize(1) == 8);
-    assert(my_alloc::AlignSize(8) == 8);
-    assert(my_alloc::AlignSize(9) == 16);
-    assert(my_alloc::AlignSize(16) == 16);
-    assert(my_alloc::AlignSize(kMaxSmallObjectSize) == kMaxSmallObjectSize);
+    assert(fastalloc::AlignSize(0) == 0);
+    assert(fastalloc::AlignSize(1) == 8);
+    assert(fastalloc::AlignSize(8) == 8);
+    assert(fastalloc::AlignSize(9) == 16);
+    assert(fastalloc::AlignSize(16) == 16);
+    assert(fastalloc::AlignSize(kMaxSmallObjectSize) == kMaxSmallObjectSize);
 }
 
 void TestMonotonicIndexToSize() {
@@ -48,8 +48,8 @@ void TestTypicalSizes() {
 }
 
 void TestBoundarySizes() {
-    assert(my_alloc::AlignSize(0) == 0);
-    assert(my_alloc::AlignSize(1) == 8);
+    assert(fastalloc::AlignSize(0) == 0);
+    assert(fastalloc::AlignSize(1) == 8);
     assert(SizeClassIndex(0) == 0);
     assert(SizeClassIndex(1) == 0);
     assert(IndexToSize(SizeClassIndex(1)) == 8);

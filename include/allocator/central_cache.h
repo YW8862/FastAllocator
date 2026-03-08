@@ -7,7 +7,7 @@
 #include "config.h"
 #include "span.h"
 
-namespace my_alloc {
+namespace fastalloc {
 
 struct CentralBucket {
     std::mutex lock;
@@ -41,4 +41,4 @@ private:
     std::array<CentralBucket, kMaxSizeClass> buckets_{};
 };
 
-}  // namespace my_alloc
+}  // namespace fastalloc

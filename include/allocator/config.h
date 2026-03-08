@@ -2,7 +2,7 @@
 
 #include <cstddef>
 
-namespace my_alloc {
+namespace fastalloc {
 
 // 基础页配置。
 inline constexpr std::size_t kPageSize = 4096;
@@ -48,4 +48,4 @@ static_assert(kDebugGuardBytes >= alignof(std::max_align_t),
 static_assert((kDebugGuardBytes % alignof(std::max_align_t)) == 0,
               "kDebugGuardBytes must be a multiple of max alignment");
 
-}  // namespace my_alloc
+}  // namespace fastalloc

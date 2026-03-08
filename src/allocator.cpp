@@ -21,7 +21,7 @@
 #include "../include/allocator/span.h"
 #include "../include/allocator/thread_cache.h"
 
-namespace my_alloc {
+namespace fastalloc {
 namespace {
 
 std::atomic<std::size_t> g_total_allocated{0};
@@ -469,4 +469,4 @@ void* realloc(void* ptr, std::size_t size) {
     return Reallocate(ptr, size);
 }
 
-}  // namespace my_alloc
+}  // namespace fastalloc

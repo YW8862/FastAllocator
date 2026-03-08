@@ -5,7 +5,7 @@
 
 #include "config.h"
 
-namespace my_alloc {
+namespace fastalloc {
 
 constexpr std::size_t AlignSize(std::size_t size,
                                 std::size_t align = kAlignmentSmall) {
@@ -96,4 +96,4 @@ std::size_t SizeClassIndex(std::size_t size);
 std::size_t IndexToSize(std::size_t index);
 std::size_t NumToMove(std::size_t index);
 
-}  // namespace my_alloc
+}  // namespace fastalloc

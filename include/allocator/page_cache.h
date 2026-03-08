@@ -6,7 +6,7 @@
 #include "radix_tree.h"
 #include "span.h"
 
-namespace my_alloc {
+namespace fastalloc {
 
 class PageCache {
 public:
@@ -31,4 +31,4 @@ private:
     RadixTree radix_tree_;
 };
 
-}  // namespace my_alloc
+}  // namespace fastalloc

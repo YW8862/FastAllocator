@@ -19,34 +19,34 @@
 
 namespace {
 
-using my_alloc::Allocate;
-using my_alloc::PageIdToPtr;
-using my_alloc::PageCache;
-using my_alloc::PtrToPageId;
-using my_alloc::RadixTree;
-using my_alloc::Span;
-using my_alloc::SpanBytes;
-using my_alloc::SpanContains;
-using my_alloc::Stats;
-using my_alloc::ThreadCache;
-using my_alloc::SizeClassIndex;
-using my_alloc::CentralCache;
-using my_alloc::Deallocate;
-using my_alloc::kPageSize;
+using fastalloc::Allocate;
+using fastalloc::PageIdToPtr;
+using fastalloc::PageCache;
+using fastalloc::PtrToPageId;
+using fastalloc::RadixTree;
+using fastalloc::Span;
+using fastalloc::SpanBytes;
+using fastalloc::SpanContains;
+using fastalloc::Stats;
+using fastalloc::ThreadCache;
+using fastalloc::SizeClassIndex;
+using fastalloc::CentralCache;
+using fastalloc::Deallocate;
+using fastalloc::kPageSize;
 
 std::size_t DebugAdjustedSize(std::size_t size) {
-    if (!my_alloc::kEnableDebugMode) {
+    if (!fastalloc::kEnableDebugMode) {
         return size;
     }
-    return size + 2 * my_alloc::kDebugGuardBytes;
+    return size + 2 * fastalloc::kDebugGuardBytes;
 }
 
 std::size_t AccountedSmallObjectBytes(std::size_t requested_size) {
-    return my_alloc::IndexToSize(SizeClassIndex(DebugAdjustedSize(requested_size)));
+    return fastalloc::IndexToSize(SizeClassIndex(DebugAdjustedSize(requested_size)));
 }
 
 void ExpectDebugAbort(void (*test_fn)()) {
-    if (!my_alloc::kEnableDebugMode) {
+    if (!fastalloc::kEnableDebugMode) {
         return;
     }
 
@@ -160,7 +160,7 @@ void TestRadixTreeBasicLookup() {
 }
 
 void TestFreeListPushPopRange() {
-    my_alloc::FreeList list;
+    fastalloc::FreeList list;
 
     std::uintptr_t a = 0;
     std::uintptr_t b = 0;
@@ -214,7 +214,7 @@ void TestThreadCacheReuse() {
 void TestThreadCacheReleaseThreshold() {
     ThreadCache cache;
     const std::size_t index = SizeClassIndex(8);
-    const std::size_t batch = my_alloc::NumToMove(index);
+    const std::size_t batch = fastalloc::NumToMove(index);
 
     for (std::size_t i = 0; i < batch * 2; ++i) {
         void* ptr = cache.Allocate(8);
@@ -238,7 +238,7 @@ void TestCentralCacheFetchAndReturn() {
 
     Span* span = PageCache::Instance().ResolveSpan(start);
     assert(span != nullptr);
-    assert(span->object_size == my_alloc::IndexToSize(index));
+    assert(span->object_size == fastalloc::IndexToSize(index));
 
     void* current = start;
     for (std::size_t i = 0; i < fetched; ++i) {
@@ -295,9 +295,9 @@ void TestCentralCacheReleaseFullSpan() {
 }
 
 void TestAllocatorSmallPath() {
-    my_alloc::initialize();
+    fastalloc::initialize();
 
-    Stats before = my_alloc::GetStats();
+    Stats before = fastalloc::GetStats();
     unsigned char* p1 = static_cast<unsigned char*>(Allocate(24));
     void* p2 = Allocate(1000);
 
@@ -308,16 +308,16 @@ void TestAllocatorSmallPath() {
     assert(PageCache::Instance().ResolveSpan(p1)->object_size >= DebugAdjustedSize(24));
     assert(PageCache::Instance().ResolveSpan(p2)->object_size >= DebugAdjustedSize(1000));
 
-    if (my_alloc::kEnableDebugMode) {
+    if (fastalloc::kEnableDebugMode) {
         for (std::size_t i = 0; i < 24; ++i) {
-            assert(p1[i] == my_alloc::kDebugAllocatedFillByte);
+            assert(p1[i] == fastalloc::kDebugAllocatedFillByte);
         }
     }
 
     Deallocate(p1);
     Deallocate(p2);
 
-    Stats after = my_alloc::GetStats();
+    Stats after = fastalloc::GetStats();
     assert(after.total_allocated > before.total_allocated);
     assert(after.total_freed > before.total_freed);
 }
@@ -325,10 +325,10 @@ void TestAllocatorSmallPath() {
 void TestAllocatorLargePath() {
     constexpr std::size_t kLargeBytes = 300 * 1024;
 
-    Stats before = my_alloc::get_stats();
-    void* large_a = my_alloc::malloc(kLargeBytes);
-    void* large_b = my_alloc::malloc(kLargeBytes + 123);
-    void* small = my_alloc::malloc(64);
+    Stats before = fastalloc::get_stats();
+    void* large_a = fastalloc::malloc(kLargeBytes);
+    void* large_b = fastalloc::malloc(kLargeBytes + 123);
+    void* small = fastalloc::malloc(64);
     assert(large_a != nullptr);
     assert(large_b != nullptr);
     assert(small != nullptr);
@@ -357,11 +357,11 @@ void TestAllocatorLargePath() {
     const auto page_id_a = large_span_a->page_id;
     const auto page_id_b = large_span_b->page_id;
 
-    my_alloc::free(large_a);
-    my_alloc::free(large_b);
-    my_alloc::free(small);
+    fastalloc::free(large_a);
+    fastalloc::free(large_b);
+    fastalloc::free(small);
 
-    Stats after = my_alloc::get_stats();
+    Stats after = fastalloc::get_stats();
     assert(after.total_allocated >=
            before.total_allocated + expected_pages_a * kPageSize);
     assert(after.total_freed >= before.total_freed + expected_pages_a * kPageSize);
@@ -376,7 +376,7 @@ void TestAllocatorReallocate() {
     const char payload[] = "fast-allocator";
     std::memcpy(ptr, payload, sizeof(payload));
 
-    char* new_ptr = static_cast<char*>(my_alloc::Reallocate(ptr, 2048));
+    char* new_ptr = static_cast<char*>(fastalloc::Reallocate(ptr, 2048));
     assert(new_ptr != nullptr);
     assert(std::memcmp(new_ptr, payload, sizeof(payload)) == 0);
 
@@ -384,20 +384,20 @@ void TestAllocatorReallocate() {
 }
 
 void TestAllocatorApiAndLazyInitialize() {
-    void* ptr = my_alloc::malloc(48);
+    void* ptr = fastalloc::malloc(48);
     assert(ptr != nullptr);
 
     Span* span = PageCache::Instance().ResolveSpan(ptr);
     assert(span != nullptr);
     assert(span->object_size != 0);
 
-    char* grown = static_cast<char*>(my_alloc::realloc(ptr, 96));
+    char* grown = static_cast<char*>(fastalloc::realloc(ptr, 96));
     assert(grown != nullptr);
 
-    my_alloc::free(grown);
+    fastalloc::free(grown);
 
-    Stats stats_lower = my_alloc::get_stats();
-    Stats stats_upper = my_alloc::GetStats();
+    Stats stats_lower = fastalloc::get_stats();
+    Stats stats_upper = fastalloc::GetStats();
     assert(stats_lower.total_allocated == stats_upper.total_allocated);
     assert(stats_lower.total_freed == stats_upper.total_freed);
     assert(stats_lower.current_bytes == stats_upper.current_bytes);
@@ -405,35 +405,35 @@ void TestAllocatorApiAndLazyInitialize() {
 }
 
 void TestAllocatorBoundarySizes() {
-    assert(my_alloc::malloc(0) == nullptr);
+    assert(fastalloc::malloc(0) == nullptr);
 
-    void* one_byte = my_alloc::malloc(1);
+    void* one_byte = fastalloc::malloc(1);
     assert(one_byte != nullptr);
     Span* one_byte_span = PageCache::Instance().ResolveSpan(one_byte);
     assert(one_byte_span != nullptr);
     assert(one_byte_span->object_size >= DebugAdjustedSize(1));
-    my_alloc::free(one_byte);
+    fastalloc::free(one_byte);
 
-    void* max_small = my_alloc::malloc(my_alloc::kMaxSmallObjectSize);
+    void* max_small = fastalloc::malloc(fastalloc::kMaxSmallObjectSize);
     assert(max_small != nullptr);
     Span* max_small_span = PageCache::Instance().ResolveSpan(max_small);
     assert(max_small_span != nullptr);
-    if (DebugAdjustedSize(my_alloc::kMaxSmallObjectSize) >
-        my_alloc::kMaxSmallObjectSize) {
+    if (DebugAdjustedSize(fastalloc::kMaxSmallObjectSize) >
+        fastalloc::kMaxSmallObjectSize) {
         assert(max_small_span->object_size == 0);
     } else {
         assert(max_small_span->object_size != 0);
         assert(max_small_span->object_size >=
-               DebugAdjustedSize(my_alloc::kMaxSmallObjectSize));
+               DebugAdjustedSize(fastalloc::kMaxSmallObjectSize));
     }
-    my_alloc::free(max_small);
+    fastalloc::free(max_small);
 
-    void* large = my_alloc::malloc(my_alloc::kMaxSmallObjectSize + 1);
+    void* large = fastalloc::malloc(fastalloc::kMaxSmallObjectSize + 1);
     assert(large != nullptr);
     Span* large_span = PageCache::Instance().ResolveSpan(large);
     assert(large_span != nullptr);
     assert(large_span->object_size == 0);
-    my_alloc::free(large);
+    fastalloc::free(large);
 }
 
 void TestAllocatorDebugChecks() {
@@ -446,17 +446,17 @@ void TestAllocatorStatsAccounting() {
     constexpr std::size_t kAllocCount = 10;
     const std::size_t accounted_bytes = AccountedSmallObjectBytes(kRequestSize);
 
-    Stats before = my_alloc::GetStats();
+    Stats before = fastalloc::GetStats();
     std::vector<void*> ptrs;
     ptrs.reserve(kAllocCount);
 
     for (std::size_t i = 0; i < kAllocCount; ++i) {
-        void* ptr = my_alloc::malloc(kRequestSize);
+        void* ptr = fastalloc::malloc(kRequestSize);
         assert(ptr != nullptr);
         ptrs.push_back(ptr);
     }
 
-    Stats mid = my_alloc::GetStats();
+    Stats mid = fastalloc::GetStats();
     assert(mid.total_allocated - before.total_allocated ==
            kAllocCount * accounted_bytes);
     assert(mid.current_bytes - before.current_bytes ==
@@ -473,10 +473,10 @@ void TestAllocatorStatsAccounting() {
     assert(mid.active_thread_count >= 1);
 
     for (std::size_t i = 0; i < kAllocCount / 2; ++i) {
-        my_alloc::free(ptrs[i]);
+        fastalloc::free(ptrs[i]);
     }
 
-    Stats after = my_alloc::GetStats();
+    Stats after = fastalloc::GetStats();
     assert(after.total_freed - before.total_freed ==
            (kAllocCount / 2) * accounted_bytes);
     assert(after.current_bytes - before.current_bytes ==
@@ -490,7 +490,7 @@ void TestAllocatorStatsAccounting() {
     assert(after.thread_current_bytes == after.current_bytes);
 
     for (std::size_t i = kAllocCount / 2; i < kAllocCount; ++i) {
-        my_alloc::free(ptrs[i]);
+        fastalloc::free(ptrs[i]);
     }
 }
 
@@ -498,12 +498,12 @@ void StatsWorker(std::size_t request_size, std::size_t count) {
     std::vector<void*> ptrs;
     ptrs.reserve(count);
     for (std::size_t i = 0; i < count; ++i) {
-        void* ptr = my_alloc::malloc(request_size);
+        void* ptr = fastalloc::malloc(request_size);
         assert(ptr != nullptr);
         ptrs.push_back(ptr);
     }
     for (void* ptr : ptrs) {
-        my_alloc::free(ptr);
+        fastalloc::free(ptr);
     }
 }
 
@@ -512,11 +512,11 @@ void TestAllocatorThreadStatsAggregation() {
     constexpr std::size_t kAllocCount = 8;
     const std::size_t accounted_bytes = AccountedSmallObjectBytes(kRequestSize);
 
-    Stats before = my_alloc::GetStats();
+    Stats before = fastalloc::GetStats();
     std::thread worker(StatsWorker, kRequestSize, kAllocCount);
     worker.join();
 
-    Stats after = my_alloc::GetStats();
+    Stats after = fastalloc::GetStats();
     assert(after.total_allocated - before.total_allocated ==
            kAllocCount * accounted_bytes);
     assert(after.total_freed - before.total_freed ==
@@ -534,18 +534,18 @@ void SameSizeWorker(std::size_t iterations, std::size_t request_size) {
     std::vector<void*> ptrs;
     ptrs.reserve(32);
     for (std::size_t i = 0; i < iterations; ++i) {
-        void* ptr = my_alloc::malloc(request_size);
+        void* ptr = fastalloc::malloc(request_size);
         assert(ptr != nullptr);
         ptrs.push_back(ptr);
         if (ptrs.size() == 32) {
             for (void* p : ptrs) {
-                my_alloc::free(p);
+                fastalloc::free(p);
             }
             ptrs.clear();
         }
     }
     for (void* p : ptrs) {
-        my_alloc::free(p);
+        fastalloc::free(p);
     }
 }
 
@@ -559,8 +559,8 @@ void MixedSizeWorker(std::size_t iterations, std::size_t seed) {
         1024,
         8 * 1024,
         64 * 1024,
-        my_alloc::kMaxSmallObjectSize,
-        my_alloc::kMaxSmallObjectSize + 1,
+        fastalloc::kMaxSmallObjectSize,
+        fastalloc::kMaxSmallObjectSize + 1,
     };
 
     std::vector<void*> ptrs;
@@ -568,21 +568,21 @@ void MixedSizeWorker(std::size_t iterations, std::size_t seed) {
     for (std::size_t i = 0; i < iterations; ++i) {
         const std::size_t request_size =
             sizes[(i + seed) % (sizeof(sizes) / sizeof(sizes[0]))];
-        void* ptr = my_alloc::malloc(request_size);
+        void* ptr = fastalloc::malloc(request_size);
         assert(ptr != nullptr);
         ptrs.push_back(ptr);
         if (ptrs.size() == 16) {
-            my_alloc::free(ptrs.front());
+            fastalloc::free(ptrs.front());
             ptrs.erase(ptrs.begin());
         }
     }
     for (void* p : ptrs) {
-        my_alloc::free(p);
+        fastalloc::free(p);
     }
 }
 
 void TestAllocatorMultithreaded() {
-    Stats before_same = my_alloc::GetStats();
+    Stats before_same = fastalloc::GetStats();
     std::vector<std::thread> same_size_threads;
     for (std::size_t i = 0; i < 4; ++i) {
         same_size_threads.emplace_back(SameSizeWorker, 2000, 64);
@@ -590,11 +590,11 @@ void TestAllocatorMultithreaded() {
     for (auto& thread : same_size_threads) {
         thread.join();
     }
-    Stats after_same = my_alloc::GetStats();
+    Stats after_same = fastalloc::GetStats();
     assert(after_same.current_bytes == before_same.current_bytes);
     assert(after_same.thread_current_bytes == before_same.thread_current_bytes);
 
-    Stats before_mixed = my_alloc::GetStats();
+    Stats before_mixed = fastalloc::GetStats();
     std::vector<std::thread> mixed_threads;
     for (std::size_t i = 0; i < 4; ++i) {
         mixed_threads.emplace_back(MixedSizeWorker, 1500, i * 7);
@@ -602,7 +602,7 @@ void TestAllocatorMultithreaded() {
     for (auto& thread : mixed_threads) {
         thread.join();
     }
-    Stats after_mixed = my_alloc::GetStats();
+    Stats after_mixed = fastalloc::GetStats();
     assert(after_mixed.current_bytes == before_mixed.current_bytes);
     assert(after_mixed.thread_current_bytes == before_mixed.thread_current_bytes);
 }
