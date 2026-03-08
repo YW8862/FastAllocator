@@ -333,7 +333,7 @@ g++ -std=c++17 -pthread -Iinclude src/*.cpp test/bench_allocator.cpp -o bench_al
 
 ### Benchmark 实测数据
 
-以下数据来自 2026-03-08 在当前仓库源码上直接执行：
+以下数据在当前仓库源码上直接执行：
 
 ```bash
 g++ -std=c++17 -pthread -Iinclude src/*.cpp test/bench_allocator.cpp -o bench_allocator
