@@ -325,11 +325,24 @@ g++ -std=c++17 -pthread -Iinclude src/*.cpp test/bench_allocator.cpp -o bench_al
 
 输出字段说明：
 
+- `allocator`：参与对比的分配器类型。`system` 表示系统默认 `malloc/free`，`fastallocator` 表示本项目实现的分配器
+- `scenario`：测试场景名称
+  - `single-fixed-64`：单线程，固定申请 `64B`
+  - `single-mixed`：单线程，按 `8/24/64/256/1024/4096` 字节混合申请
+  - `multi-fixed-64`：4 线程，固定申请 `64B`
+  - `multi-mixed`：4 线程，按 `8/24/64/256/1024/4096/32768` 字节混合申请
 - `ops`：总操作次数
 - `qps`：每秒完成的 alloc+free 次数
 - `p99(ns)`：单次 alloc+free 延迟的 P99
 - `current`：当前仍在使用的字节数
 - `peak`：运行过程中峰值字节数
+
+解读建议：
+
+- 看整体吞吐能力时，优先关注 `qps`，数值越大表示单位时间内完成的分配/释放次数越多
+- 看延迟抖动和尾部性能时，关注 `p99(ns)`，数值越小越好
+- 看测试结束后是否还有未释放统计时，关注 `current`，在当前 benchmark 下通常应接近 `0`
+- 看运行过程中最高占用水位时，关注 `peak`，它反映测试期间分配器记录到的峰值内存占用
 
 ### Benchmark 实测数据
 
