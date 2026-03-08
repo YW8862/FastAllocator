@@ -331,17 +331,50 @@ g++ -std=c++17 -pthread -Iinclude src/*.cpp test/bench_allocator.cpp -o bench_al
 - `current`：当前仍在使用的字节数
 - `peak`：运行过程中峰值字节数
 
-## 当前限制
+### Benchmark 实测数据
 
-- 目前仍是教学/实验性质实现，尚未做生产级健壮性处理
-- 还没有接入正式构建系统
-- benchmark 目前只内置了系统分配器与本实现的对比
-- 文档中的 `jemalloc` / `tcmalloc` 对比还没有接入
-- 尚未系统接入 `ASan` / `TSan` / `valgrind` 脚本
+以下数据来自 2026-03-08 在当前仓库源码上直接执行：
 
-## 后续建议
+```bash
+g++ -std=c++17 -pthread -Iinclude src/*.cpp test/bench_allocator.cpp -o bench_allocator
+./bench_allocator
+```
 
-- 接入 `CMake`
-- 增加 `jemalloc` / `tcmalloc` 基准对比
-- 增加自动化 sanitizer 配置
-- 补充更完整的多线程与长期运行压力测试
+测试环境：
+
+- 系统：`Linux 5.15.0-60-generic`
+- 编译器：`g++ 11.4.0`
+- CPU 线程数：`4`
+
+#### `kEnableDebugMode = true`
+
+| allocator | scenario | ops | qps | p99(ns) | current | peak |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| system | single-fixed-64 | 50000 | 5594163.36 | 81 | 0 | 0 |
+| fastallocator | single-fixed-64 | 50000 | 1121021.82 | 1008 | 0 | 96 |
+| system | single-mixed | 50000 | 5454894.57 | 129 | 0 | 0 |
+| fastallocator | single-mixed | 50000 | 1054698.92 | 1182 | 0 | 5120 |
+| system | multi-fixed-64 | 120000 | 9088159.92 | 93 | 0 | 0 |
+| fastallocator | multi-fixed-64 | 120000 | 1016895.59 | 17724 | 0 | 5120 |
+| system | multi-mixed | 120000 | 20435862.90 | 134 | 0 | 0 |
+| fastallocator | multi-mixed | 120000 | 823398.76 | 21181 | 0 | 147456 |
+
+#### `kEnableDebugMode = false`
+
+| allocator | scenario | ops | qps | p99(ns) | current | peak |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| system | single-fixed-64 | 50000 | 5642961.90 | 84 | 0 | 0 |
+| fastallocator | single-fixed-64 | 50000 | 1333158.25 | 704 | 0 | 64 |
+| system | single-mixed | 50000 | 5614985.18 | 115 | 0 | 0 |
+| fastallocator | single-mixed | 50000 | 1177548.28 | 1220 | 0 | 4096 |
+| system | multi-fixed-64 | 120000 | 21986446.09 | 75 | 0 | 0 |
+| fastallocator | multi-fixed-64 | 120000 | 1144247.50 | 17132 | 0 | 4096 |
+| system | multi-mixed | 120000 | 16776041.80 | 212 | 0 | 0 |
+| fastallocator | multi-mixed | 120000 | 882112.71 | 21668 | 0 | 131072 |
+
+说明：
+
+- 两组数据是分别重新编译并重新执行 benchmark 得到的，便于直接比较调试开关带来的差异。
+- `kEnableDebugMode = true` 时，`fastallocator` 会执行 guard 检查、填充字节以及额外的调试路径，因此吞吐和尾延迟通常会比 `false` 更差。
+- 基准测试存在机器负载抖动，`system malloc/free` 的结果在不同轮次之间也会有波动，属于正常现象。
+
